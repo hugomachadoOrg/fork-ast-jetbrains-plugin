@@ -116,8 +116,10 @@ jobs:
         run: |
           if [ -z "${{ inputs.rchannels }}" ]; then
             echo "GH_RELEASE_TAG_NAME=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+            echo "VERSION - ${{ env.RELEASE_VERSION }}"
           else
             echo "GH_RELEASE_TAG_NAME=${{ env.RELEASE_VERSION }}-${{ inputs.rchannels }}" >> $GITHUB_ENV
+            echo "VERSION - ${{ env.RELEASE_VERSION }}"
           fi
       # Build plugin
       - name: Build
@@ -133,13 +135,3 @@ jobs:
           files: build/distributions/*
           generate_release_notes: true
           prerelease: ${{ inputs.rchannels != '' && inputs.rchannels != null }}
-      # Publish the plugin in marketplace
-      - name: Publish Plugin
-        env:
-          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-        run: |
-          if [ -z "${{ inputs.channels }}" ]; then
-            echo "Publishing to STABLE channel"
-          else
-            echo "Publishing to ${{ inputs.channels }} channel"
-          fi
