@@ -147,7 +147,7 @@ jobs:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         run: |
           if [ -z "${{ inputs.channels }}" ]; then
-            echo "Publishing to STABLE channel"
+            echo "Publishing to STABLE channel!"
           else
             echo "Publishing to ${{ inputs.channels }} channel"
           fi
