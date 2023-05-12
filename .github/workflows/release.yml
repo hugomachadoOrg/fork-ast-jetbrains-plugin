@@ -111,6 +111,14 @@ jobs:
         run: |
           echo "RELEASE_VERSION=${{ inputs.tag }}" >> $GITHUB_ENV
           echo "JAVA_WRAPPER_VERSION=${{ inputs.javawrapperversion }}" >> $GITHUB_ENV
+      # CREATE GH RELEASE NAME
+      - name: Handle GH Release name
+        run: |
+          if [ -z "${{ inputs.rchannels }}" ]; then
+            echo "GH_RELEASE_TAG_NAME=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+          else
+            echo "GH_RELEASE_TAG_NAME=${{ env.RELEASE_VERSION }}-${{ inputs.rchannels }}" >> $GITHUB_ENV
+          fi
       # Build plugin
       - name: Build
         env:
@@ -120,16 +128,18 @@ jobs:
       - name: Create Release or Prerelease
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.RELEASE_VERSION }}
+          tag_name: ${{ env.GH_RELEASE_TAG_NAME }}
+          name: ${{ env.GH_RELEASE_TAG_NAME }}
           files: build/distributions/*
+          generate_release_notes: true
           prerelease: ${{ inputs.rchannels != '' && inputs.rchannels != null }}
       # Publish the plugin in marketplace
       - name: Publish Plugin
         env:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         run: |
-          if [ -z "${{ inputs.rchannels }}" ]; then
-            ./gradlew publishPlugin
+          if [ -z "${{ inputs.channels }}" ]; then
+            echo "Publishing to STABLE channel"
           else
-            ./gradlew publishPlugin -Prchannels=${{ inputs.rchannels }}
+            echo "Publishing to ${{ inputs.channels }} channel"
           fi
