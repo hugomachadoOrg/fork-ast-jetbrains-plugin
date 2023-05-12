@@ -99,7 +99,7 @@ jobs:
     with:
       tag: ${{ inputs.rchannels }}
     secrets: inherit
-    if: inputs.channels != ''
+    if: inputs.rchannels
 
   release:
     runs-on: ubuntu-latest
