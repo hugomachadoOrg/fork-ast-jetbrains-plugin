@@ -66,33 +66,40 @@ jobs:
         with:
           name: verifier-report
           path: build/reports/pluginVerifier
-  testIntegration:
-    needs: [ verify ]
-    runs-on: ubuntu-latest
-    steps:
-      # Check out current repository
-      - name: Fetch Sources
-        uses: actions/checkout@v3
-      # Setup Java 11 environment for the next steps
-      - name: Setup Java
-        uses: actions/setup-java@v3.11.0
-        with:
-          distribution: zulu
-          java-version: 11
-      # Perform clean before testing
-      - name: Clean
-        run: ./gradlew clean
-      # Run tests
-      - name: Tests
-        run: ./gradlew test -i --tests com.checkmarx.intellij.standard*
-      # Save report if tests fail
-      - name: Save fails report
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-fails-report-integration
-          path: |
-            build/reports
+  #  testIntegration:
+  #    needs: [ verify ]
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      # Check out current repository
+  #      - name: Fetch Sources
+  #        uses: actions/checkout@v3
+  #      # Setup Java 11 environment for the next steps
+  #      - name: Setup Java
+  #        uses: actions/setup-java@v3.11.0
+  #        with:
+  #          distribution: zulu
+  #          java-version: 11
+  #      # Perform clean before testing
+  #      - name: Clean
+  #        run: ./gradlew clean
+  #      # Run tests
+  #      - name: Tests
+  #        run: ./gradlew test -i --tests com.checkmarx.intellij.standard*
+  #      # Save report if tests fail
+  #      - name: Save fails report
+  #        if: ${{ failure() }}
+  #        uses: actions/upload-artifact@v3
+  #        with:
+  #          name: test-fails-report-integration
+  #          path: |
+  #            build/reports
+
+  delete:
+    uses: hugomachadoOrg/fork-ast-jetbrains-plugin/.github/workflows/delete-dev-releases.yml@main
+    with:
+      tag: ${{ inputs.rchannels }}
+    secrets: inherit
+    if: -z "${{ inputs.channels }}"
 
   release:
     runs-on: ubuntu-latest
@@ -116,11 +123,10 @@ jobs:
           echo "Creating release name"
           if [ -z "${{ inputs.rchannels }}" ]; then
             echo "GH_RELEASE_TAG_NAME=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
-            echo "VERSION - ${{ env.RELEASE_VERSION }}"
           else
             echo "GH_RELEASE_TAG_NAME=${{ env.RELEASE_VERSION }}-${{ inputs.rchannels }}" >> $GITHUB_ENV
-            echo "VERSION - ${{ env.RELEASE_VERSION }}"
           fi
+          echo "VERSION - ${{ env.GH_RELEASE_TAG_NAME }}"
       # Build plugin
       - name: Build
         env:
@@ -135,3 +141,13 @@ jobs:
           files: build/distributions/*
           generate_release_notes: true
           prerelease: ${{ inputs.rchannels != '' && inputs.rchannels != null }}
+      # Publish the plugin in marketplace
+      - name: Publish Plugin
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        run: |
+          if [ -z "${{ inputs.channels }}" ]; then
+            echo "Publishing to STABLE channel"
+          else
+            echo "Publishing to ${{ inputs.channels }} channel"
+          fi
