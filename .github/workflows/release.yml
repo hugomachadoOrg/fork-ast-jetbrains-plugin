@@ -111,6 +111,8 @@ jobs:
         run: |
           echo "RELEASE_VERSION=${{ inputs.tag }}" >> $GITHUB_ENV
           echo "JAVA_WRAPPER_VERSION=${{ inputs.javawrapperversion }}" >> $GITHUB_ENV
+      - name: Create Release Name
+        run: |
           echo "Creating release name"
           if [ -z "${{ inputs.rchannels }}" ]; then
             echo "GH_RELEASE_TAG_NAME=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
